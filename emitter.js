@@ -70,9 +70,9 @@ function getEmitter() {
                 }
                 const eventsToEmit = this.events[e];
                 eventsToEmit.forEach(eventEmit => {
-                    if (eventEmit.times) {
+                    if (eventEmit.times && eventEmit.times > 0) {
                         checkSeveral(eventEmit);
-                    } else if (eventEmit.frequency) {
+                    } else if (eventEmit.frequency && eventEmit.frequency > 0) {
                         checkThrough(eventEmit);
                     } else {
                         eventEmit.handler.call(eventEmit.context);
