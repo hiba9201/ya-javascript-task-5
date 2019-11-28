@@ -45,7 +45,9 @@ function getEmitter() {
                 .filter(key => (key.startsWith(`${event}.`) || key === event));
             for (const offEvent of offEvents) {
                 const eventIndex = this.events[offEvent].findIndex(e => e.context === context);
-                this.events[offEvent].splice(eventIndex, 1);
+                if (eventIndex > -1) {
+                    this.events[offEvent].splice(eventIndex, 1);
+                }
             }
 
             return this;
