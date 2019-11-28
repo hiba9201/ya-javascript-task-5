@@ -44,10 +44,8 @@ function getEmitter() {
             const offEvents = Object.keys(this.events)
                 .filter(key => (key.startsWith(`${event}.`) || key === event));
             for (const offEvent of offEvents) {
-                const eventIndex = this.events[offEvent].findIndex(e => e.context === context);
-                if (eventIndex > -1) {
-                    this.events[offEvent].splice(eventIndex, 1);
-                }
+                this.events[offEvent] = this.events[offEvent]
+                    .filter(eventContext => eventContext.context !== context);
             }
 
             return this;
@@ -95,10 +93,16 @@ function getEmitter() {
          * @returns {Object} this
          */
         several: function (event, context, handler, times) {
-            this.on(event, context, handler);
-            const action = this.events[event].find(e => e.context === context);
-            action.times = times;
-            action.emitTimes = 0;
+            if (!Object.keys(this.events).includes(event)) {
+                this.events[event] = [];
+            }
+            const contextEvent = {
+                context: context,
+                handler: handler,
+                times: times,
+                emitTimes: 0
+            };
+            this.events[event].push(contextEvent);
 
             return this;
         },
@@ -113,10 +117,16 @@ function getEmitter() {
          * @returns {Object} this
          */
         through: function (event, context, handler, frequency) {
-            this.on(event, context, handler);
-            const action = this.events[event].find(e => e.context === context);
-            action.frequency = frequency;
-            action.emitTimes = 0;
+            if (!Object.keys(this.events).includes(event)) {
+                this.events[event] = [];
+            }
+            const contextEvent = {
+                context: context,
+                handler: handler,
+                frequency: frequency,
+                emitTimes: 0
+            };
+            this.events[event].push(contextEvent);
 
             return this;
         }
