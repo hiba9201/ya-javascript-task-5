@@ -22,14 +22,11 @@ function getEmitter() {
          * @returns {Object} this
          */
         on: function (event, context, handler) {
-            if (!Object.keys(this.events).includes(event)) {
-                this.events[event] = [];
-            }
             const contextEvent = {
                 context: context,
                 handler: handler
             };
-            this.events[event].push(contextEvent);
+            this._addContextEventToEvents(contextEvent, event);
 
             return this;
         },
@@ -68,12 +65,13 @@ function getEmitter() {
                 if (!Object.keys(this.events).includes(e)) {
                     continue;
                 }
+
                 const eventsToEmit = this.events[e];
                 eventsToEmit.forEach(eventEmit => {
                     if (eventEmit.times && eventEmit.times > 0) {
-                        checkSeveral(eventEmit);
+                        this._checkSeveral(eventEmit);
                     } else if (eventEmit.frequency && eventEmit.frequency > 0) {
-                        checkThrough(eventEmit);
+                        this._checkThrough(eventEmit);
                     } else {
                         eventEmit.handler.call(eventEmit.context);
                     }
@@ -93,16 +91,13 @@ function getEmitter() {
          * @returns {Object} this
          */
         several: function (event, context, handler, times) {
-            if (!Object.keys(this.events).includes(event)) {
-                this.events[event] = [];
-            }
             const contextEvent = {
                 context: context,
                 handler: handler,
                 times: times,
                 emitTimes: 0
             };
-            this.events[event].push(contextEvent);
+            this._addContextEventToEvents(contextEvent, event);
 
             return this;
         },
@@ -117,32 +112,36 @@ function getEmitter() {
          * @returns {Object} this
          */
         through: function (event, context, handler, frequency) {
-            if (!Object.keys(this.events).includes(event)) {
-                this.events[event] = [];
-            }
             const contextEvent = {
                 context: context,
                 handler: handler,
                 frequency: frequency,
                 emitTimes: 0
             };
-            this.events[event].push(contextEvent);
+            this._addContextEventToEvents(contextEvent, event);
 
             return this;
+        },
+
+        _addContextEventToEvents: function (contextEvent, event) {
+            if (!Object.keys(this.events).includes(event)) {
+                this.events[event] = [];
+            }
+            this.events[event].push(contextEvent);
+        },
+
+        _checkSeveral: function (eventEmit) {
+            if (eventEmit.times > eventEmit.emitTimes++) {
+                eventEmit.handler.call(eventEmit.context);
+            }
+        },
+
+        _checkThrough: function (eventEmit) {
+            if (eventEmit.emitTimes++ % eventEmit.frequency === 0) {
+                eventEmit.handler.call(eventEmit.context);
+            }
         }
     };
-}
-
-function checkSeveral(eventEmit) {
-    if (eventEmit.times > eventEmit.emitTimes++) {
-        eventEmit.handler.call(eventEmit.context);
-    }
-}
-
-function checkThrough(eventEmit) {
-    if (eventEmit.emitTimes++ % eventEmit.frequency === 0) {
-        eventEmit.handler.call(eventEmit.context);
-    }
 }
 
 module.exports = {
