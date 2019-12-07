@@ -38,11 +38,12 @@ function getEmitter() {
          * @returns {Object} this
          */
         off: function (event, context) {
-            const offEvents = Object.keys(this.events)
-                .filter(key => (key.startsWith(`${event}.`) || key === event));
+            const offEvents = Object.keys(this.events);
             for (const offEvent of offEvents) {
-                this.events[offEvent] = this.events[offEvent]
-                    .filter(eventContext => eventContext.context !== context);
+                if (offEvent.startsWith(`${event}.`) || offEvent === event) {
+                    this.events[offEvent] = this.events[offEvent]
+                        .filter(eventContext => eventContext.context !== context);
+                }
             }
 
             return this;
@@ -54,23 +55,22 @@ function getEmitter() {
          * @returns {Object} this
          */
         emit: function (event) {
-            const eventSplit = event.split('.');
-            const events = [eventSplit[0]];
-            for (let i = 1; i < eventSplit.length; i++) {
-                events.push(`${events[i - 1]}.${eventSplit[i]}`);
+            const commandsCount = (event.match(/./) || []).length + 1;
+            const events = [event];
+            for (let i = 1; i < commandsCount; i++) {
+                events.push(events[i - 1].slice(0, events[i - 1].lastIndexOf('.')));
             }
-            events.reverse();
 
             for (const e of events) {
-                if (!Object.keys(this.events).includes(e)) {
+                if (!this.events[e]) {
                     continue;
                 }
 
                 const eventsToEmit = this.events[e];
                 eventsToEmit.forEach(eventEmit => {
-                    if (eventEmit.times && eventEmit.times > 0) {
+                    if (eventEmit.times > 0) {
                         this._checkSeveral(eventEmit);
-                    } else if (eventEmit.frequency && eventEmit.frequency > 0) {
+                    } else if (eventEmit.frequency > 0) {
                         this._checkThrough(eventEmit);
                     } else {
                         eventEmit.handler.call(eventEmit.context);
@@ -124,7 +124,7 @@ function getEmitter() {
         },
 
         _addContextEventToEvents: function (contextEvent, event) {
-            if (!Object.keys(this.events).includes(event)) {
+            if (!this.events[event]) {
                 this.events[event] = [];
             }
             this.events[event].push(contextEvent);
