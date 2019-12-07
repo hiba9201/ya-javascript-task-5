@@ -55,11 +55,12 @@ function getEmitter() {
          * @returns {Object} this
          */
         emit: function (event) {
-            const commandsCount = (event.match(/./) || []).length + 1;
-            const events = [event];
-            for (let i = 1; i < commandsCount; i++) {
-                events.push(events[i - 1].slice(0, events[i - 1].lastIndexOf('.')));
+            const eventSplit = event.split('.');
+            const events = [eventSplit[0]];
+            for (let i = 1; i < eventSplit.length; i++) {
+                events.push(`${events[i - 1]}.${eventSplit[i]}`);
             }
+            events.reverse();
 
             for (const e of events) {
                 if (!this.events[e]) {
