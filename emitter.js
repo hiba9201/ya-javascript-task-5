@@ -55,7 +55,7 @@ function getEmitter() {
          * @returns {Object} this
          */
         emit: function (event) {
-            const commandsCount = (event.match(/\./) || []).length + 1;
+            const commandsCount = (event.match(/\./g) || []).length + 1;
             const events = [event];
             for (let i = 1; i < commandsCount; i++) {
                 events.push(events[i - 1].slice(0, events[i - 1].lastIndexOf('.')));
